@@ -93,6 +93,7 @@
                 <i data-lucide="shield-check" class="w-12 h-12"></i>
             </div>
             <h2 class="text-3xl md:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-amber-400 via-rose-400 to-indigo-400 leading-tight">오픽 리허설룸 IM3 3-3</h2>
+            <div class="mt-2 text-[10px] text-emerald-300 font-bold tracking-widest">VERSION 1.1 · BUTTON FIXED</div>
             <p class="text-slate-400 text-sm md:text-base font-semibold">무료 체험은 딱 1문항만 가능합니다. 전체 15문항, AI 점검, S펜 메모, 3단계 스크립트는 입금 확인 후 승인 계정에서 열립니다.</p>
         </div>
 
@@ -123,7 +124,7 @@
                 </div>
                 <div class="pt-4 border-t border-slate-800 flex justify-between items-center text-[10px]">
                     <span class="text-slate-600">Beta Gate Version 1.0</span>
-                    <button onclick="triggerAdminModalPrompt()" class="text-slate-500 hover:text-indigo-400 font-bold transition">🔑 관리자 로그인</button>
+                    <button id="adminLoginBtn" onclick="triggerAdminModalPrompt()" type="button" class="text-slate-500 hover:text-indigo-400 font-bold transition">🔑 관리자 로그인</button>
                 </div>
             </div>
 
@@ -135,16 +136,16 @@
                         <div>
                             <input type="email" id="loginEmail" placeholder="가입 이메일 (예: example@naver.com)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-100 outline-none focus:border-rose-500 transition">
                         </div>
-                        <button onclick="loginSaaS()" class="w-full py-3.5 bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white font-extrabold text-sm rounded-xl shadow-lg shadow-rose-950/20 transition-all">
+                        <button id="loginFullBtn" onclick="loginSaaS()" type="button" class="w-full py-3.5 bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white font-extrabold text-sm rounded-xl shadow-lg shadow-rose-950/20 transition-all">
                             전체 기능 시작하기
                         </button>
-                        <button onclick="startFreeDemo()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-extrabold text-sm rounded-xl shadow-lg transition-all mt-2 flex items-center justify-center gap-2">
+                        <button id="freeDemoBtn" onclick="startFreeDemo()" type="button" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-extrabold text-sm rounded-xl shadow-lg transition-all mt-2 flex items-center justify-center gap-2">
                             <i data-lucide="play-circle" class="w-4 h-4"></i> 무료 1문항만 체험하기
                         </button>
                         <p class="text-[10px] text-slate-500 leading-relaxed text-center">무료 체험은 Q1 자기소개 1문항만 열립니다. AI 점검, S펜 메모, 전체 15문항은 승인 계정 전용입니다.</p>
                     </div>
                     <div class="text-center pt-2">
-                        <button onclick="toggleAuthForm(true)" class="text-xs text-indigo-400 hover:text-indigo-300 font-bold transition">계정이 없으신가요? 결제 신청하기 ➔</button>
+                        <button id="showSignupBtn" onclick="toggleAuthForm(true)" type="button" class="text-xs text-indigo-400 hover:text-indigo-300 font-bold transition">계정이 없으신가요? 결제 신청하기 ➔</button>
                     </div>
                 </div>
 
@@ -156,12 +157,12 @@
                         <div><input type="email" id="regEmail" placeholder="로그인 이메일 (평생 아이디)" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 outline-none"></div>
                         <div><input type="text" id="regDepositor" placeholder="송금 입금자명" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 outline-none"></div>
                         <div><input type="text" id="regPhone" placeholder="연락처 (인증 비상용)" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 outline-none"></div>
-                        <button onclick="requestAccessSaaS()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold rounded-xl shadow-lg transition-all mt-2">
+                        <button id="requestAccessBtn" onclick="requestAccessSaaS()" type="button" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold rounded-xl shadow-lg transition-all mt-2">
                             베타 이용권 승인 요청
                         </button>
                     </div>
                     <div class="text-center pt-1">
-                        <button onclick="toggleAuthForm(false)" class="text-xs text-rose-400 hover:text-rose-300 font-bold transition">이미 신청 하셨나요? 계정 로그인하러 가기 ➔</button>
+                        <button id="showLoginBtn" onclick="toggleAuthForm(false)" type="button" class="text-xs text-rose-400 hover:text-rose-300 font-bold transition">이미 신청 하셨나요? 계정 로그인하러 가기 ➔</button>
                     </div>
                 </div>
             </div>
@@ -493,7 +494,6 @@
         // 입금 확인 후 아래 APPROVED_EMAILS에 구매자 이메일을 추가하고 다시 업로드하면 전체 권한이 열립니다.
         const APPROVED_EMAILS = [
             { name: "근님", email: "geun@naver.com" }
-             { name: "박근", email: "park814@naver.com" }
         ];
         let accessMode = "guest"; // guest | demo | full
         let saasUsers = JSON.parse(localStorage.getItem('opic_saas_users')) || [];
@@ -1325,6 +1325,42 @@ Rules:
             fontSizeScale = Math.max(10, Math.min(24, fontSizeScale + delta));
             loadStepQuestion(activeIdx);
         }
+
+
+        // ROBUST CLICK BINDINGS FOR GITHUB PAGES VERSION 1.1
+        // 일부 브라우저/캐시 환경에서 inline onclick이 먹지 않을 때를 대비해 직접 바인딩합니다.
+        window.startFreeDemo = startFreeDemo;
+        window.loginSaaS = loginSaaS;
+        window.toggleAuthForm = toggleAuthForm;
+        window.requestAccessSaaS = requestAccessSaaS;
+        window.triggerAdminModalPrompt = triggerAdminModalPrompt;
+        window.closeModal = closeModal;
+        window.changeMode = changeMode;
+        window.changeFontSize = changeFontSize;
+        window.logoutSaaS = logoutSaaS;
+        window.playExamQuestion = playExamQuestion;
+        window.toggleSpeakingRecord = toggleSpeakingRecord;
+        window.evaluateWithGemini = evaluateWithGemini;
+        window.speakCurrentField = speakCurrentField;
+        window.prevStepQuestion = prevStepQuestion;
+        window.nextStepQuestion = nextStepQuestion;
+        window.clearScratchpad = clearScratchpad;
+        window.toggleEraser = toggleEraser;
+        window.setPenColor = setPenColor;
+        window.updatePenWidth = updatePenWidth;
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const bind = (id, fn) => {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener('click', function(e){ e.preventDefault(); fn(); });
+            };
+            bind('freeDemoBtn', startFreeDemo);
+            bind('loginFullBtn', loginSaaS);
+            bind('showSignupBtn', function(){ toggleAuthForm(true); });
+            bind('showLoginBtn', function(){ toggleAuthForm(false); });
+            bind('requestAccessBtn', requestAccessSaaS);
+            bind('adminLoginBtn', triggerAdminModalPrompt);
+        });
     </script>
 </body>
 </html>
