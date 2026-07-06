@@ -93,7 +93,7 @@
                 <i data-lucide="shield-check" class="w-12 h-12"></i>
             </div>
             <h2 class="text-3xl md:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-amber-400 via-rose-400 to-indigo-400 leading-tight">오픽 리허설룸 IM3 3-3</h2>
-            <div class="mt-2 text-[10px] text-emerald-300 font-bold tracking-widest">VERSION 1.1 · BUTTON FIXED</div>
+            <div class="mt-2 text-[10px] text-emerald-300 font-bold tracking-widest">VERSION 1.2 · CODE GATE</div>
             <p class="text-slate-400 text-sm md:text-base font-semibold">무료 체험은 딱 1문항만 가능합니다. 전체 15문항, AI 점검, S펜 메모, 3단계 스크립트는 입금 확인 후 승인 계정에서 열립니다.</p>
         </div>
 
@@ -109,7 +109,7 @@
                         베타 이용권 안내 (2,900원)
                     </h3>
                     <p class="text-xs text-slate-400 leading-relaxed">
-                        무료 사용자는 1문항만 체험할 수 있습니다. 입금 확인 후 관리자가 승인한 이메일만 전체 기능을 이용할 수 있습니다.
+                        무료 사용자는 1문항만 체험할 수 있습니다. 입금 확인 후 발급받은 이용권 코드 또는 승인 이메일로 전체 기능을 이용할 수 있습니다.
                     </p>
                     <div class="bg-slate-950 border border-slate-850 rounded-2xl p-4 space-y-2">
                         <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider block">계좌이체 정보</span>
@@ -123,18 +123,21 @@
                     </div>
                 </div>
                 <div class="pt-4 border-t border-slate-800 flex justify-between items-center text-[10px]">
-                    <span class="text-slate-600">Beta Gate Version 1.0</span>
+                    <span class="text-slate-600">Beta Gate Version 1.2</span>
                     <button id="adminLoginBtn" onclick="triggerAdminModalPrompt()" type="button" class="text-slate-500 hover:text-indigo-400 font-bold transition">🔑 관리자 로그인</button>
                 </div>
             </div>
 
             <div class="flex flex-col justify-center min-h-[300px]" id="authFormSection">
                 <div id="loginFormContainer" class="space-y-4">
-                    <h3 class="text-lg font-black text-slate-100">승인 계정으로 로그인</h3>
-                    <p class="text-xs text-slate-500 leading-none">입금 확인 후 승인된 이메일만 전체 기능을 이용할 수 있습니다.</p>
+                    <h3 class="text-lg font-black text-slate-100">승인 이메일 또는 이용권 코드로 로그인</h3>
+                    <p class="text-xs text-slate-500 leading-none">입금 확인 후 받은 이용권 코드 또는 승인된 이메일로 전체 기능을 이용할 수 있습니다.</p>
                     <div class="space-y-3 pt-2">
                         <div>
                             <input type="email" id="loginEmail" placeholder="가입 이메일 (예: example@naver.com)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-100 outline-none focus:border-rose-500 transition">
+                        </div>
+                        <div>
+                            <input type="text" id="accessCode" placeholder="이용권 코드 (입금 확인 후 발급)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-100 outline-none focus:border-rose-500 transition">
                         </div>
                         <button id="loginFullBtn" onclick="loginSaaS()" type="button" class="w-full py-3.5 bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white font-extrabold text-sm rounded-xl shadow-lg shadow-rose-950/20 transition-all">
                             전체 기능 시작하기
@@ -490,8 +493,14 @@
         });
 
         // ACCESS DATA
-        // GitHub Pages 같은 정적 배포에서는 서버 DB가 없으므로,
-        // 입금 확인 후 아래 APPROVED_EMAILS에 구매자 이메일을 추가하고 다시 업로드하면 전체 권한이 열립니다.
+        // VERSION 1.2 CODE GATE
+        // 쉬운 운영법: 입금 확인 후 아래 ACCESS_CODES 중 하나를 고객에게 보내면 전체 기능이 열립니다.
+        // 더 엄격한 운영이 필요할 때만 APPROVED_EMAILS에 이메일을 추가하세요.
+        const ACCESS_CODES = [
+            "OPIC2900",
+            "IM3PASS",
+            "GEUN2026"
+        ];
         const APPROVED_EMAILS = [
             { name: "근님", email: "geun@naver.com" }
         ];
@@ -622,16 +631,28 @@
         }
 
         function loginSaaS() {
-            const el = document.getElementById("loginEmail");
-            if(!el) return;
-            const email = el.value.trim().toLowerCase();
-            if (!email) { openModal("입력 오류", "가입 승인된 이메일 주소를 입력해 주십시오."); return; }
+            const emailEl = document.getElementById("loginEmail");
+            const codeEl = document.getElementById("accessCode");
+            if(!emailEl) return;
+
+            const email = emailEl.value.trim().toLowerCase();
+            const code = (codeEl ? codeEl.value.trim().toUpperCase() : "");
+
+            if (!email) {
+                openModal("입력 오류", "로그인 이메일을 입력해 주세요. 이용권 코드를 받은 경우에도 이메일은 함께 입력해야 합니다.");
+                return;
+            }
 
             const staticUser = APPROVED_EMAILS.find(u => (u.email || "").toLowerCase() === email);
             const localUser = saasUsers.find(u => (u.email || "").toLowerCase() === email);
-            const user = staticUser || localUser;
-            if (!user) { openModal("로그인 거부", "아직 승인되지 않은 이메일입니다. 결제 신청을 먼저 진행해 주세요."); return; }
-            if (!staticUser && !user.approved) { openModal("승인 대기", "입금 확인 및 승인 처리가 아직 보류 중입니다."); return; }
+            const codeOk = ACCESS_CODES.map(c => String(c).toUpperCase()).includes(code);
+
+            if (!staticUser && !codeOk && (!localUser || !localUser.approved)) {
+                openModal("로그인 거부", "아직 전체 이용권이 열리지 않았습니다.\n\n입금 후 받은 이용권 코드를 입력하거나, 승인된 이메일로 로그인해 주세요.");
+                return;
+            }
+
+            const user = staticUser || localUser || { name: "베타회원", email };
 
             accessMode = "full";
             document.getElementById("saasGatewayView")?.classList.add("hidden");
@@ -1327,7 +1348,7 @@ Rules:
         }
 
 
-        // ROBUST CLICK BINDINGS FOR GITHUB PAGES VERSION 1.1
+        // ROBUST CLICK BINDINGS FOR GITHUB PAGES VERSION 1.2
         // 일부 브라우저/캐시 환경에서 inline onclick이 먹지 않을 때를 대비해 직접 바인딩합니다.
         window.startFreeDemo = startFreeDemo;
         window.loginSaaS = loginSaaS;
